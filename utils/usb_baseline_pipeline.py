@@ -66,22 +66,36 @@ class USBBaselinePipeline:
 
     def photometric_calibration(self, img: np.ndarray) -> np.ndarray:
         """
-        Baseline: optional 1D LUT on [0,1] (per channel same curve).
-        If crf_lut is None, this step is identity.
+        Baseline: apply 1D LUT (CRF) on 0–255 domain, then回到 0–1 float32。
 
-        img: float32, 0~1, BGR.
+        假設:
+        - 如果 crf_lut 最大值 <= 1.0，表示它是 0–1 的 float → 幫你乘回 255。
+        - 否則當成 0–255 使用。
         """
         if self.crf_lut is None:
             return img
 
-        # 假設 crf_lut.shape = (256,)，對 0~1 做 mapping
-        lut = self.crf_lut.astype(np.float32)
-        lut = np.clip(lut, 0.0, 1.0)
+        # 先把輸入影像轉成 0–255 uint8
+        img_u8 = np.clip(img * 255.0, 0, 255).astype(np.uint8)
 
-        img_uint8 = np.clip(img * 255.0, 0, 255).astype(np.uint8)
-        # 對每個 channel 使用相同 LUT
-        calibrated = cv2.LUT(img_uint8, lut)
-        return calibrated.astype(np.float32) / 255.0
+        lut = np.array(self.crf_lut, dtype=np.float32)
+
+        if lut.ndim != 1 or lut.shape[0] != 256:
+            # 如果你的 LUT 不是 256 長度，這裡可以依你實際情況調整 / 插值
+            raise ValueError(f"crf_lut shape must be (256,), got {lut.shape}")
+
+        # 根據 lut 的範圍決定要不要乘 255
+        if lut.max() <= 1.0 + 1e-6:
+            # 假設是 0–1 float CRF → 轉成 uint8
+            lut_u8 = np.clip(lut * 255.0, 0, 255).astype(np.uint8)
+        else:
+            # 假設已經是 0–255
+            lut_u8 = np.clip(lut, 0, 255).astype(np.uint8)
+
+        calibrated_u8 = cv2.LUT(img_u8, lut_u8)
+        calibrated = calibrated_u8.astype(np.float32) / 255.0
+        return calibrated
+
 
     # ========== 3. Exposure Compensation ==========
 
