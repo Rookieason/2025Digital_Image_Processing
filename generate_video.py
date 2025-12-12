@@ -35,7 +35,7 @@ def process_video(input_path: str, output_path: str):
         denoise_method="gaussian",
     )
 
-    # pipeline = integrate_into_pipeline(pipeline)
+    pipeline = integrate_into_pipeline(pipeline)
 
     while True:
         ret, frame = cap.read()
