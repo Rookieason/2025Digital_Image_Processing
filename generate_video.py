@@ -4,7 +4,7 @@ import numpy as np
 
 # from utils.usb_baseline_pipeline_fast import USBBaselinePipelineFast
 from utils.usb_pipeline import USBBaselinePipelineFast
-from utils.Exposure_Compensation_v5 import integrate_into_pipeline
+from utils.Exposure_Compensation_v1 import integrate_into_pipeline
 
 def load_calibration():
     data = np.load("utils/calib.npz")
@@ -49,6 +49,6 @@ def process_video(input_path: str, output_path: str):
     writer.release()
 
 if __name__ == "__main__":
-    input_video = "raw.mp4"
-    output_video = "vb0.mp4"
+    input_video = "i.mp4"
+    output_video = "i_online.mp4"
     process_video(input_video, output_video)

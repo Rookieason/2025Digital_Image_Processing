@@ -214,7 +214,7 @@ class USBBaselinePipelineFast:
         img = self.gamma_correction(img)
 
         # 2. Photometric calibration (optional LUT)
-        img = self.photometric_calibration(img)
+        # img = self.photometric_calibration(img)
 
         # 3. Exposure compensation (global scale)
         img = self.exposure_compensation(img)
